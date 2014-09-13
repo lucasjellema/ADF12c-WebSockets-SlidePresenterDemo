@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html>
+<f:view xmlns:f="http://java.sun.com/jsf/core" xmlns:af="http://xmlns.oracle.com/adf/faces/rich"
+        xmlns:h="http://java.sun.com/jsf/html">
+    <af:document title="SlidePresenter.jsf" id="d1">
+        <h:outputScript library="js/" name="WebSocketForADFClientLib.js" id="os1"/>
+        <af:resource type="javascript">
+          function sendMessage(event) {
+              sendText('Click');
+              event.cancel();
+
+          }
+
+          showPopup = function (image) {
+              var popup = AdfPage.PAGE.findComponentByAbsoluteId("demoPopup");
+              var dialog = popup.findComponent(":d2");
+              dialog.setTitle("Selected image " + image);
+              var imageComponent = popup.findComponent(":sharedImage");
+              imageComponent.setSource("images/" + image);
+              popup.show();
+          }
+
+          function selectImage(event) {
+              var image = event.getSource();
+              var imageName = image.getProperty("imageSource");
+              var carousel = AdfPage.PAGE.findComponentByAbsoluteId("imgSelector");
+              AdfCustomEvent.queue(carousel, "processImageSelectionEvent", 
+              {
+                  imageName : imageName
+              },
+              true);
+          }
+
+          function startSlideShow(event) {
+              var button = event.getSource();
+              AdfCustomEvent.queue(button, "startSlideShowEvent", 
+              {
+              },
+              true);
+          }
+          
+          
+        </af:resource>
+        <af:form id="f1">
+            <af:panelGridLayout id="pgl1">
+                <af:gridRow height="50px" id="gr2">
+                    <af:gridCell width="100%" halign="stretch" valign="stretch" id="gc1">
+                        <af:panelHeader text="Slide Presenter" id="ph1"/>
+                    </af:gridCell>
+                </af:gridRow>
+                <af:gridRow height="100%" id="gr1">
+                    <af:gridCell width="100%" halign="stretch" valign="stretch" id="gc2">
+                        <!--  <af:button text="button 1" id="b1">
+                            <af:clientListener type="action" method="sendMessage"/>
+                        </af:button>                       
+                        -->
+                        <af:button text="Start Slideshow" id="b2">
+                            <af:clientListener type="action" method="startSlideShow"/>
+                            <af:serverListener type="startSlideShowEvent" method="#{imageManager.slideShow}"/>
+                        </af:button>
+                        <af:outputText id="messageMonitor" clientComponent="true" value="-"/>
+                        <af:panelBox text="Select Image" id="pb31">
+                            <f:facet name="toolbar"/>
+                            <af:panelGroupLayout id="pgl" layout="scroll">
+                                <af:carousel id="imgSelector" value="#{imageManager.images}" var="img">
+                                    <f:facet name="nodeStamp">
+                                        <af:carouselItem id="ci1">
+                                            <af:image source="images/#{img}" id="i1">
+                                                <af:clientListener method="selectImage" type="dblClick"/>
+                                                <af:clientAttribute name="imageSource" value="#{img}"/>
+                                            </af:image>
+                                        </af:carouselItem>
+                                    </f:facet>
+                                    <af:serverListener type="processImageSelectionEvent"
+                                                       method="#{imageManager.processImageSelection}"/>
+                                </af:carousel>
+                            </af:panelGroupLayout>
+                        </af:panelBox>
+                    </af:gridCell>
+                </af:gridRow>
+            </af:panelGridLayout>
+            <af:popup id="demoPopup" contentDelivery="immediate">
+                <af:dialog closeIconVisible="false" title="Image" visible="true" id="d2">
+                    <af:image clientComponent="true" source="images/Chrysanthemum.jpg" id="sharedImage"
+                              inlineStyle="height:400px"/>
+                </af:dialog>
+            </af:popup>
+        </af:form>
+    </af:document>
+</f:view>
